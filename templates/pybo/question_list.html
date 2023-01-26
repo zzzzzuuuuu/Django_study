@@ -25,6 +25,9 @@
             </td>
             <td>
                 <a href="{% url 'pybo:detail' question.id %}">{{ question.subject }}</a>
+                {% if question.answer_set.count > 0 %} <!--답변이 있는 경우 검사-->
+                <span class="text-danger small mx-2">{{ question.answer_set.count }}</span> <!--답변 개수 표시-->
+                {% endif %}
             </td>
             <td>{{ question.create_date }}</td>
         </tr>
