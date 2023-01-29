@@ -129,3 +129,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #로그인 성공 후 이동하는 url
 LOGIN_REDIRECT_URL = '/'
+
+#로그아웃시 이동하는 url
+LOGOUT_REDIRECT_URL = '/'
