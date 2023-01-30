@@ -5,6 +5,7 @@ from .models import Question
 from .forms import QuestionForm, AnswerForm
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required #로그인이 필요함
+from django.contrib import messages
 
 # from django.http import HttpResponse #HttpResponse: 요청에 대한 응답을 할 때 사용 #필요없어져서 삭제
 
@@ -64,5 +65,24 @@ def question_create(request): #질문 등록하기 버튼을 누르면!
             return redirect('pybo:index')
     else:
         form = QuestionForm()
+    context = {'form': form}
+    return render(request, 'pybo/question_form.html', context)
+
+
+@login_required(login_url='common:login')
+def question_modify(request, question_id):
+    question = get_object_or_404(Question, pk=question_id)
+    if request.user != question.author:
+        messages.error(request, '수정권한이 없습니다.')
+        return redirect('pybo:detail', question_id=question.id)
+    if request.method == "POST": #수정된 내용을 반영하는 경우
+        form = QuestionForm(request.POST, instance=question) #request.POST 값으로 덮어쓰라는 의미
+        if form.is_valid():
+            question = form.save(commit=False)
+            question.modify_date = timezone.now() #수정일시 저장
+            question.save()
+            return redirect('pybo:detail', question_id=question.id)
+    else: #GET방식
+        form = QuestionForm(instance=question)
     context = {'form': form}
     return render(request, 'pybo/question_form.html', context)

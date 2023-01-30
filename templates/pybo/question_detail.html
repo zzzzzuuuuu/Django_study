@@ -3,6 +3,15 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container my-3">
+    <!-- message 표시 -->
+    {% if messages %}
+    <div class="alert alert-danger my-3" role="alert">
+    {% for message in messages %}
+        <strong>{{ message.tags }}</strong>
+        <ul><li>{{ message.message }}</li></ul>
+    {% endfor %}
+    </div>
+    {% endif %}
     <!-- 질문 -->
     <h2 class="border-bottom py-2">{{ question.subject }}</h2>
     <div class="card my-3">
@@ -13,6 +22,14 @@
                     <div class="mb-2">{{ question.author.username }}</div>
                     <div>{{ question.create_date }}</div>
                 </div>
+            </div>
+            <div class="my-3">
+                {% if request.user == question.author %} <!--로그인한 사용자와 글쓴이가 동일한 경우에만 노출되도록-->
+                <a href="{% url 'pybo:question_modify' question.id %}"
+                   class="btn btn-sm btn-outline-secondary">수정</a>
+                <a href="javascript:void(0)" class="delete btn btn-sm btn-outline-secondary"
+                   data-uri="{% url 'pybo:question_delete' question.id %}">삭제</a> <!--삭제->확인버튼 선택하면..-->
+                {% endif %}
             </div>
         </div>
     </div>
@@ -58,6 +75,18 @@
         <input type="submit" value="답변등록" class="btn btn-primary">
     </form>
 </div>
+{% endblock %}
+{% block script %}
+<script type="text/javascript">
+    const delete_elements = document.getElementsByClassName("delete");
+    Array.from(delete_elements).forEach(fuction(element) {
+        element.addEventListener('click', function() {
+            if(confirm("정말로 삭제하시겠습니까?")) {
+                location.href = this.dataset.uri;
+            };
+        });
+    });
+</script>
 {% endblock %}
 
 {% load static %} <!--이 태그를 먼저 삽입해야 하단에 static 태그 삽입 가능-->
