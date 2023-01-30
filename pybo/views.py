@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from .models import Question
-from django.http import HttpResponseNotAllowed
+# from django.http import HttpResponseNotAllowed
 from .forms import QuestionForm, AnswerForm
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required #로그인이 필요함
 
 # from django.http import HttpResponse #HttpResponse: 요청에 대한 응답을 할 때 사용 #필요없어져서 삭제
 
@@ -27,6 +28,7 @@ def detail(request, question_id):
     return render(request, 'pybo/question_detail.html', context)
 
 
+@login_required(login_url='common:login')
 def answer_create(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     # question.answer_set.create(content=request.POST.get('content'), create_date=timezone.now())
@@ -36,16 +38,19 @@ def answer_create(request, question_id):
         form = AnswerForm(request.POST)
         if form.is_valid():
             answer = form.save(commit=False)
+            answer.author = request.user #author 속성에 로그인 계정 저장. request.user=현재 로그인한 계정의 User 모델 객체
             answer.create_date = timezone.now()
             answer.question = question
             answer.save()
             return redirect('pybo:detail', question_id=question.id)
     else: #get방식으로 요청할 경우 오류 발생
-        return HttpResponseNotAllowed('Only POST is possible.')
+        form = AnswerForm()
+        # return HttpResponseNotAllowed('Only POST is possible.')
     context = {'question': question, 'form': form}
     return render(request, 'pybo/question_detail.html', context)
 
 
+@login_required(login_url='common:login')
 def question_create(request): #질문 등록하기 버튼을 누르면!
     # form = QuestionForm()
     # return render(request, 'pybo/question_form.html', {'form': form})
@@ -53,6 +58,7 @@ def question_create(request): #질문 등록하기 버튼을 누르면!
         form = QuestionForm(request.POST)
         if form.is_valid(): #폼이 유효하다면
             question = form.save(commit=False) #임시저장하여 question 객체를 리턴받는다.
+            question.author = request.user #author 속성에 로그인 계정 저장
             question.create_date = timezone.now() #실제 저장을 위해 작성일시를 설정한다.
             question.save() #데이터를 실제로 저장한다.
             return redirect('pybo:index')
